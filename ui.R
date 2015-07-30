@@ -128,7 +128,6 @@ shinyUI(
                           ),
                           fluidRow(
                             column(4, 
-                                   br(),
                                    plotOutput("effectPlot")
                             ),
                             column(8, 

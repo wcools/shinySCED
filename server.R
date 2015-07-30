@@ -31,30 +31,30 @@ shinyServer(function(input,output){
   # to select the response
   output$response<-renderUI({
     validate(      need(input$file, '')	  )
-    selectInput("response", "Response:", choices=c("---",setdiff(getVarnames(), "---")), selected="y")
+    selectInput("response", "Response:", choices=c("---",setdiff(getVarnames(), "---")))#, selected="y")
   })
   # to select the case
   output$cases<-renderUI({
     validate(      need(input$file, '')	  )
-    selectInput("cases", "Cases (factor):", choices=c("---",setdiff(getVarnames(), "---")), selected="case")
+    selectInput("cases", "Cases (factor):", choices=c("---",setdiff(getVarnames(), "---")))#, selected="case")
   })
   # to select the study
   output$studies<-renderUI({
     validate(      need(input$file, '')	  )
     # get varnames (excluding the response and cases)
-    selectInput("studies", "Studies (factor):", choices=c("---",setdiff(getVarnames(), "---")), selected="study")
+    selectInput("studies", "Studies (factor):", choices=c("---",setdiff(getVarnames(), "---")))#, selected="study")
   })
   # to select the treatment
   output$treatment<-renderUI({
     validate(      need(input$file, '')	  )
     # get varnames (exclusing the response and cases and studies and time)
-    selectInput("treatment", "Treatment (factor):", choices=c("---",setdiff(getVarnames(), "---")), selected="treat")
+    selectInput("treatment", "Treatment (factor):", choices=c("---",setdiff(getVarnames(), "---")))#, selected="treat")
   })
   # to select the time
   output$time<-renderUI({
     validate(      need(input$file, '')	  )
     # get varnames (exclusing the response and cases and studies)
-    selectInput("time", "Time (numeric):", choices=c("---",setdiff(getVarnames(), "---")), selected="time")
+    selectInput("time", "Time (numeric):", choices=c("---",setdiff(getVarnames(), "---")))#, selected="time")
   })
   
   # to choose to standardize or not
@@ -170,16 +170,19 @@ shinyServer(function(input,output){
   output$varyPerCase <- renderUI({
     validate(      
       need(input$file, ''),
-      need(input$cases != "---", '')    
+      need(input$cases != "---", '')
     )
+    varnames <- ""
     if(input$response != "---" & input$time != "---" & input$treatment != "---"){
       varnames<-list()
       for(i in setdiff(getFixed(), c(input$response,input$studies))){
         varnames[[i]] <- i
       }
     }
-    selected <- c("intercept",varnames)
-    checkboxGroupInput("varyPerCase", "case (random):", choices=selected, selected="intercept")
+    if(varnames != ""){
+      selected <- c("intercept",varnames)
+      checkboxGroupInput("varyPerCase", "case (random):", choices=selected, selected="intercept")
+    } 
   })  
   # random variables, per study
   output$varyPerStudy <- renderUI({
@@ -187,14 +190,17 @@ shinyServer(function(input,output){
       need(input$file, ''),
       need(input$studies != "---", '')    
     )
+    varnames <- ""
     if(input$response != "---" & input$time != "---" & input$treatment != "---"){
       varnames<-list()
       for(i in setdiff(getFixed(), c(input$response,input$studies))){
         varnames[[i]] <- i
       }
     }
-    selected <- c("intercept",varnames)
-    checkboxGroupInput("varyPerStudy", "study (random):", choices=selected, selected="intercept")
+    if(varnames != ""){
+      selected <- c("intercept",varnames)
+      checkboxGroupInput("varyPerStudy", "study (random):", choices=selected, selected="intercept")
+    } 
   })
 
   # 2do -> include || into the models
