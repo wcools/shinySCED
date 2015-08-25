@@ -5,7 +5,9 @@ running it requires the installation of the shiny package in R, ones, and loadin
 from there just run the code locally in R with the runGitHub command
 
 install.packages('shiny')
+
 library(shiny)
+
 runGitHub('shinySCED','wcools')
 
 This tool is in full development and is not ready for use. We would appreciate comments and corrections. Furthermore, when using the tool we suggest the following reference.
