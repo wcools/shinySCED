@@ -4,11 +4,9 @@ shiny interface in R for exploring single case data of type AB / MBD
 running it requires the installation of the shiny package in R, ones, and loading its functions for each new workspace.
 from there just run the code locally in R with the runGitHub command
 
-install.packages('shiny')
-
-library(shiny)
-
-runGitHub('shinySCED','wcools')
+install.packages('shiny')<br>
+library(shiny)<br>
+runGitHub('shinySCED','wcools')<br>
 
 This tool is in full development and is not ready for use. We would appreciate comments and corrections. Furthermore, when using the tool we suggest the following reference.
 Cools, W., Beretvas, S.N., Ferron, J., Moeyaert, M. & Van den Noortgate, W. (2015). SSED data analysis [Computer software]. Retrieved from www.single-case.com
