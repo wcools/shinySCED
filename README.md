@@ -1,8 +1,8 @@
 # singleCaseExperimentalDesign
 shiny interface in R for exploring single case data of type AB / MBD
 
-running it requires the installation of the shiny package in R, ones, and loading its functions for each new workspace.
-from there just run the code locally in R with the runGitHub command
+running it requires the installation of the shiny package in R (install.packages), once, and loading its functions for each new workspace (library).
+from there just run the code locally in R with the runGitHub command (runGitHub).
 
 install.packages('shiny')<br>
 library(shiny)<br>
