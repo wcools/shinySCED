@@ -14,9 +14,11 @@ require(shiny)
 shinyUI(
     
 	fluidPage(
-
 		# TWITTER BOOTSTRAP THEMES
-		theme = "spacelabmin.css",
+		theme="cosmo",
+		includeCSS("mystyle.css"),
+
+		# theme = "spacelabmin.css",
 		 # tags$style(type="text/css",
 		 #            ".shiny-output-error { visibility: hidden; }",
 		 #            ".shiny-output-error:before { visibility: hidden; }"),
@@ -38,12 +40,14 @@ shinyUI(
 		fluidRow(
 
 			# TAB PANEL to specify the type of output / results
-			tabsetPanel(type = "tabs", 
+			tabsetPanel(type = "tabs",
+				id = "tabset",
 			   
 ## START ##
 			   
 				# START tabset to give general information on the App (default)
-				tabPanel("start",
+				tabPanel(title = "start",
+					value = "start",
 				
 					# FILEINPUT, function to upload a file
 					# ! only accepts *.txt input
@@ -59,7 +63,8 @@ shinyUI(
 								The time (observation order) identification is numeric/integer, required<br>
 								Case and study identifications is character/factor (quoted), not required<br>
 							</p>")
-						)
+						),
+						checkboxInput("runExample", "testing", FALSE)
 					),
 					column(7,
 						br(),
@@ -74,9 +79,9 @@ shinyUI(
 								</small></strong>
 								<br/>
 								<br/>
-								<cite>
+								<cite><small>
 								Note that the tool is being build as part of research funded by the Institute of Education Sciences, U.S. Department of Education, Grant number R305D150007. The opinions expressed are those of the authors and do not represent views of the Institute or the U.S. Department of Education or the Research Foundation Flanders.
-								</cite>
+								</small></cite>
 								<br/>
 							</p><br>"
 						)
@@ -86,133 +91,236 @@ shinyUI(
 ## DATA ##
 
 				# < DATA > tabset for upload, subsetting, summarizing
-				tabPanel("DATA", 
+				tabPanel(title = "DATA", 
+					value = "data",
 
 					# DATA, the left column to identify the variables, standardize and center
 					column(5, br(),
 						# info on data specification
-						verbatimTextOutput('dataInfo'),                         
+						h4("data specification"),
+						# verbatimTextOutput("data.txt.require"),                         
 						br(),
 						wellPanel(
 							# Data specification
 							# dropdown to select response variable
-							uiOutput("response"),
+							uiOutput("data.select.response"),
 							# checkbox to standardize the response (dividing by RMSE of casewise regression)
-							uiOutput("standardized"),
+							uiOutput("data.check.standardized"),
 							# dropdown to select case and study variables
-							uiOutput("cases"),
-							uiOutput("studies"),
+							uiOutput("data.select.studies"),
+							uiOutput("data.select.cases"),
+							# checkbox to combine names study and case
+							uiOutput("data.check.concatenate"),
 							# dropdown to select treatment variable
-							uiOutput("treatment"),
+							uiOutput("data.select.treatment"),
+							# TMP !! is this usefull ? what if treatment is intermittent ? !!
+							uiOutput("data.select.control"),
 							# dropdown to select time/order variable
-							uiOutput("time"),
+							uiOutput("data.select.time"),
 							# checkbox to center time with zero as last Base observation of first Base phase
 							# TMP !! is this usefull ? what if treatment is intermittent ? !!
-							uiOutput("transtime"),
+							uiOutput("data.check.transtime"),
 							hr()
-						),
-						# checkbox to request response * time | treatment plots (design plots)
-						uiOutput("showDesignPlots"),
-						# link to request download of the design plots
-						uiOutput("showDownloadDesignPlots"),
-						# reactive slider to specify height of the casewise design plots
-						uiOutput("sliderCaseDesign"),
-						# casewise design plots
-						plotOutput("rCasePlots")
+						)
 					),
 					# DATA, the right column to show the data structure, subset, summary and table
-					column(7, br(),
-						verbatimTextOutput('dataTypes'),
-						br(),
-						h4("data structure"),
-						# show the data in R format, uses R command str()
-						verbatimTextOutput('dataStructure'),
-						br(),
+					column(2, br(),
 						h4("subsetting"),
 						# ROW with three columns, for the selection checkboxes and the summary
-						fluidRow(
+						# fluidRow(
 							# dynamically list the cases and studies included in the identified variables
 							# out of which a subset can be selected for further processing
-							column(2, uiOutput("selectedStudies")),
-							column(2, uiOutput("selectedCases")),
-							column(8, 
-								verbatimTextOutput("rCaseSummary")
-							)
+						column(6, checkboxInput('data.check.toggleStudies', 'All/None'), uiOutput("data.checks.selectedStudies")),
+						column(6, checkboxInput('data.check.toggleCases', 'All/None'), uiOutput("data.checks.selectedCases"))
+					),
+					column(5, br(),
+						h4("data structure"),
+						# show the data in R format, uses R command str()
+						verbatimTextOutput('data.txt.structure'),
+						# column(6, 
+						h4("warnings"), 
+						wellPanel(
+							HTML("<p>
+							Variables automatically converted<br>Type selection error prone!!<br>Check data structure (left)<br>Note: factors for quoted text or numbers<br><br>Centering time is on first treatment observation<br>
+							</p>")
 						),
 						fluidRow(
 							# checkbox to show data table or not 
-							uiOutput("showDataTable"),
+							uiOutput("data.check.table"),
 							# show download link to download data table 
-							uiOutput("showDownloadDataTable"),
+							uiOutput("data.link.downloadTable"),
 							# shiny table of the data
-							dataTableOutput('rDataTable')
+							dataTableOutput('data.table.selected')
 						)
 					)
 				),
+
+## CASE Analysis, estimation ##
+
+				# per case regressions
+				# TMP !! include MODEL for the prediction
+				tabPanel(title = "Data Description",
+					value = "desc",
+					column(1,br(),
+						uiOutput("desc.checks.selectedCases")	
+					),
+					column(6, br(),
+						# reactive info on the casewise regressions
+						# verbatimTextOutput("desc.txt.formula"),
+						wellPanel(
+							h4("data description"),
+							# download link for the table of regression results
+							# uiOutput("desc.link.downloadDescription"),
+							# table of case regression results in R format, using summary()
+							dataTableOutput("desc.table.descriptives")
+						)
+					),					
+					column(5, br(),
+						# uiOutput("case.check.plots"),
+						# reactive slider to specify time range
+						wellPanel(
+							# link to request download of the design plots
+							uiOutput("desc.link.showDownloadCasePlots"),
+							uiOutput("desc.plots"),
+							
+							# checkbox to request response * time | treatment plots (design plots)
+							uiOutput("desc.check.showDesignPlots"),
+							# link to request download of the design plots
+							uiOutput("desc.link.showDownloadDesignPlots"),
+							# reactive slider to specify height of the casewise design plots
+							uiOutput("desc.slider.caseDesign"),
+							# casewise design plots
+							plotOutput("desc.plot.caseDesign")
+						)
+					)
+				),
+
 
 ## MODEL ##
 
 				# < MODEL > tabset for model specification
-				tabPanel("MODEL", 
+				tabPanel(title = "MODEL", 
+					value = "model",
 					# all predictors in the fixed part
-					column(3,
+					column(5, 
 						br(),
-						wellPanel(
-							# checkboxes for the main effects, the interactions and second order effects
-							uiOutput("fixedMain"),
-							uiOutput("fixedOther")
-						)
-					),
-					# all predictors in the random part
-					# note, only up to three level models with cases within studies
-					column(3,
-						br(),
-						wellPanel(
-							# checkboxes for the variable with variance over cases / studies 
-							uiOutput("varCases"),
-							uiOutput("varStudies")
-						)
-					),
-					column(6, 
-						br(),
+						h4("model specification"),
 						# reactive information on the selected model (still implement)
-						verbatimTextOutput('modelInfo'),
-						h4("R model for case regressions"),
-						# the regression model for the casewise regression in R format
-						verbatimTextOutput('showCasesModel'),
-						h4("R model for meta-analysis"),
-						# the regression model for the meta analysis in R format
-						verbatimTextOutput('showMetaModel')
+						wellPanel(
+							HTML("<p>Specify the model. Note this is dependent on data specifications.<br>The case regressions are independent of the multilevel structure.</p>")
+						),
+						wellPanel(
+							uiOutput('model.check.select'),
+							verbatimTextOutput('model.txt.formula')
+						)
+					),
+					column(7,
+						fluidRow(
+						br(),
+						h4("R formulas"),
+						# the regression model for the casewise regression and meta analysis in R format
+						verbatimTextOutput('model.txt.Rformula'),
+						h4("model refinement"),
+							column(6,
+								wellPanel(
+									# checkboxes for the main effects, the interactions and second order effects
+									uiOutput("model.check.simpleFixed"),
+									uiOutput("model.check.extendedFixed")
+								)
+							),
+							# all predictors in the random part
+							# note, only up to three level models with cases within studies
+							column(6,
+								wellPanel(
+									# checkboxes for the variable with variance over cases / studies 
+									uiOutput("model.check.casesRandom"),
+									uiOutput("model.check.studiesRandom")
+								)
+							)
+						)
 					)
 				),
 				
-## CASE Analysis ##
+## CASE Analysis, estimation ##
 
 				# per case regressions
 				# TMP !! include MODEL for the prediction
-				tabPanel("Case Analysis",
+				tabPanel(title = "Casewise Estimation",
+					value = "ests",
+					
+					column(1,br(),
+						uiOutput("caseEst.checks.selectedCases")	
+					),
 					column(6, br(),
-						# reactive info on the casewise regressions (still implement)
-						verbatimTextOutput("casewiseRegressionInfo"),
+						# reactive info on the casewise regressions
+						verbatimTextOutput("caseEst.txt.formula"),
 						wellPanel(
 							h4("regression output"),
 							# download link for the table of regression results
-							uiOutput("showDownloadCaseResults"),
+							uiOutput("caseEst.link.downloadEstimates"),
 							# table of case regression results in R format, using summary()
-							tableOutput("regressCaseResults")							
+							tableOutput("caseEst.table.estimates")							
 						)
 					),					
-					column(6, br(),
-						# reactive info on the prediction regressions (currently just the time indicator)
-						verbatimTextOutput("casewisePredictionInfo"),
+					column(5, br(),
+						# uiOutput("case.check.plots"),
 						# reactive slider to specify time range
 						wellPanel(
-							uiOutput("sliderPredictTime"),
+							# checkbox to request response * time | treatment plots (design plots)
+							uiOutput("caseEst.check.showCasePlots"),
+							# link to request download of the design plots
+							uiOutput("caseEst.link.showDownloadCasePlots"),
+							uiOutput("caseEst.plots")
+						)
+					)
+				),
+
+## CASE Analysis, prediction ##
+
+				# per case regressions
+				# TMP !! include MODEL for the prediction
+				tabPanel(title = "Casewise Prediction & Effect Sizes",
+					value = "preds",
+				
+					column(1,br(),
+						uiOutput("casePred.checks.selectedCases")	
+					),
+					# slider 
+					column(6, br(),
+						# reactive slider to specify time range
+						wellPanel(
+							fluidRow(
+								column(4,
+									uiOutput("casePred.select.alpha")
+								),
+								column(8,
+								# reactive info on the prediction regressions (currently just the time indicator)
+									verbatimTextOutput("casePred.txt.slider")						
+								)
+							),
+							uiOutput("casePred.slider.timePredict"),
 							# h4("predictions at the given time"),
 							# download link for the table of regression results
-							uiOutput("showDownloadCasePredictions"),
+							uiOutput("casePred.link.downloadEffectSizes"),
 							# table of predictions in R format using predict()
-							tableOutput("predictionCaseResults")
+							tableOutput("casePred.table.effectsizes")
+						)
+					),
+					# slider 
+					column(5, br(),
+						wellPanel(
+							fluidRow(
+								column(3, numericInput("minTime", "Min", 0)),
+								column(3, numericInput("maxTime", "Max", 10)),
+								column(3, numericInput("stepSize", "Step Nr.", 100))
+							),
+							# checkbox to request response * time | treatment plots (design plots)
+							uiOutput("casePred.check.showCasePlots"),
+							# link to request download of the design plots
+							uiOutput("casePred.link.showDownloadCasePlots"),
+							uiOutput("casePred.plots")
+
+
 						)
 					)
 				),
@@ -220,18 +328,20 @@ shinyUI(
 ## META ANALYSIS ##
 
 				# meta analysis using a linear mixed model (see RUN)
-				tabPanel("Meta-Analysis",
+				tabPanel(title = "Meta-Analysis",
+					value = "meta",
+
 					column(6, br(),
-						verbatimTextOutput('metaInfo'),
-						actionButton("r", "<< run meta-analysis as linear mixed model >>", width="100%"),
+						verbatimTextOutput('meta.txt.formula'),
+						actionButton("runMeta", "<< run meta-analysis as linear mixed model >>", width="100%"),
 						wellPanel(
 							h4("regression output"),
 							# show case regression results in R format, using summary()
-							verbatimTextOutput('metaResults')						
+							verbatimTextOutput('meta.txt.note')						
 						)
 					),
 					column(6, br(),
-						verbatimTextOutput('metaInterpret')
+						verbatimTextOutput('meta.txt.info')
 					)
 				), 
 
@@ -241,37 +351,22 @@ shinyUI(
 				# note, heights can be specified
 				# note, all plots are on the same axis
 				# note, responsive to the selection of cases (studies)
-				tabPanel("Selected Plots",
-
-				   # top ROW with 2 columns, one for plots and one for the predictions
-				   # !! predictions to be removed !!
-				   # !! other type of plots to be included !!
-#					fluidRow(
-					   # slider for the height of the plots and the actual plots
-					column(6,  br(),
-						# checkbox to request response * time | treatment plots (design plots)
-						uiOutput("showLmCasePlots"),
-						# link to request download of the design plots
-						uiOutput("showDownloadLmCasePlots"),
-						# reactive slider to specify height of the casewise design plots
-						uiOutput("sliderLmCasePlots"),
-						# casewise design plots
-						plotOutput("rLmCasePlots")
+				tabPanel(title = "Test Page",
+					value = "test",
+				
+					column(6,br(),
+						tableOutput("test.table"),
+						verbatimTextOutput('test.text')
 					),
-					# slider 
-					column(6, br() #,
-						# show the selected time point in the slider
-						# verbatimTextOutput("plotCaseInfo"),
-						# sliderInput("sliderCasePlot", label = h4("set plot height"), min = 0, max = 100, value = 50),
-						# plotOutput("casePlot")
+					column(6,  br(),
+						uiOutput("test.check.show"),
+						uiOutput("test.plot"),
+						uiOutput("test.link.download"),
+						uiOutput("test.slider"),
+						plotOutput("test.plotset")
 					)
 				)
 			) # > tabsetPanel
-		), # > fluidrow 
-		# bottom
-		fluidRow(
-			HTML("<p style=\"padding: 20px; \">	</p>"),
-			hr()
-		)
+		) # > fluidrow 
 	) # > fluidPage			
 ) # > shinyUI
